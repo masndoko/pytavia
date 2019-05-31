@@ -55,10 +55,9 @@ db = {
 
 	#detail table of t_user
 	"t_user" : {
-		"id_user"		: "",
+		"name"			: "",
 		"username"		: "",
-		"password"		: "",
 		"salt"			: "",
-		"name"			: ""
+		"password"		: ""
 	},
 }
