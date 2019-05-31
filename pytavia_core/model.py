@@ -58,6 +58,7 @@ db = {
 		"name"			: "",
 		"username"		: "",
 		"salt"			: "",
-		"password"		: ""
+		"password"		: "",
+		"session"		: ""
 	},
 }

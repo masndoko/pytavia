@@ -43,12 +43,17 @@ app.secret_key  = config.G_FLASK_SECRET
 
 ########################## CALLBACK API ###################################
 
+#==================================================
+#Landing
+#==================================================
 @app.route("/", methods=["GET"])
 def index_get():
 	return "<center>Hello world</center>"
 #end
 
-
+#==================================================
+#Authentication
+#==================================================
 @app.route("/register", methods=["POST"])
 def register_post():
 	#prepare data
@@ -60,5 +65,18 @@ def register_post():
 
 	#run & return
 	result		= authentication.authentication({}).register(params)
+	return json.dumps(result)
+#end
+
+@app.route("/login", methods=["POST"])
+def login_post():
+	#prepare data
+	params		= {
+					"username"		: request.form.get('username'),
+					"password"		: request.form.get('password')
+				  }
+
+	#run & return
+	result		= authentication.authentication({}).login(params)
 	return json.dumps(result)
 #end
