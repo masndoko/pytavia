@@ -54,22 +54,27 @@ class authentication:
 	def login(self, params):
 		#checking user
 		info_user		= self._get_user_by_username(params['username'])
-		# return info_user['pkey']
+
+		#is already login?
+		if (info_user is not None and info_user['session'] != ""):
+			return {"status" : 1, "message" : 'the floor is yours', 'session' : info_user['session']}
+		#endif
 		
+		#is valid user?
 		if (info_user is None):
 			return {"status" : 0, "message" : 'you shall not pass'}
 		#endif
 
+		#is correct password?
 		if (info_user['password'] != self._generate_password(info_user['salt'], params['password'])):
 			return {"status" : 0, "message" : 'you shall not pass'}
 		#endif
 		
-		#prepare data
+		#update data user
 		session			= self._generate_session()
 		query			= {"username": params['username']}
-		new_values		= {"$set": { "session": session }}
+		new_values		= {"$set": { "session": session}}
 		
-		#update data user
 		myclient		= pymongo.MongoClient("mongodb://localhost:27017/")
 		mydb			= myclient["dbsample"]
 		mycol			= mydb["t_user"]
@@ -78,12 +83,37 @@ class authentication:
 		return {"status" : 1, "message" : 'the floor is yours', 'session' : session}
 	#end
 
+	def logout(self, params):
+		#checking user
+		info_user		= self._get_user_by_session(params['session'])
+
+		#is valid user signin?
+		if (info_user is not None):
+			#update data user
+			query			= {"session": info_user['session']}
+			new_values		= {"$set": { "session": ""}}
+
+			myclient		= pymongo.MongoClient("mongodb://localhost:27017/")
+			mydb			= myclient["dbsample"]
+			mycol			= mydb["t_user"]
+			mycol.update_one(query, new_values)
+		#endif
+		
+		return {"status" : 1, "message" : 'see you next time'}
+	#end
+
 	
 	#==================================================
 	#Private Function
 	#==================================================
 	def _get_user_by_username(self, username):
 		info_user		= self.dbsample.t_user.find_one({"username": username})
+		info_user		= json.loads(json_util.dumps(info_user))
+		return info_user
+	#end
+
+	def _get_user_by_session(self, session):
+		info_user		= self.dbsample.t_user.find_one({"session": session})
 		info_user		= json.loads(json_util.dumps(info_user))
 		return info_user
 	#end

@@ -80,3 +80,15 @@ def login_post():
 	result		= authentication.authentication({}).login(params)
 	return json.dumps(result)
 #end
+
+@app.route("/logout", methods=["POST"])
+def logout_post():
+	#prepare data
+	params		= {
+					"session"		: request.form.get('session')
+				  }
+
+	#run & return
+	result		= authentication.authentication({}).logout(params)
+	return json.dumps(result)
+#end
