@@ -53,12 +53,19 @@ class mongo_model:
 
 db = {
 
-	#detail table of t_user
+	#table t_user
 	"t_user" : {
 		"name"			: "",
 		"username"		: "",
 		"salt"			: "",
 		"password"		: "",
 		"session"		: ""
+	},
+
+	#table t_thread
+	"t_thread" : {
+		"title"			: "",
+		"content"		: "",
+		"creator"		: "",
 	},
 }

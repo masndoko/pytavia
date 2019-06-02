@@ -14,6 +14,9 @@ sys.path.append("pytavia_modules")
 sys.path.append("pytavia_modules/access")
 from access import authentication
 
+sys.path.append("pytavia_modules/forum")
+from forum import thread
+
 # adding comments
 from pytavia_stdlib  import utils
 from pytavia_core    import database 
@@ -90,5 +93,59 @@ def logout_post():
 
 	#run & return
 	result		= authentication.authentication({}).logout(params)
+	return json.dumps(result)
+#end
+
+#==================================================
+#Thread
+#==================================================
+@app.route("/threads", methods=["POST"])
+def thread_post():
+	#prepare data
+	params		= {
+					"title"			: request.form.get('title'),
+					"content"		: request.form.get('content'),
+					"session"		: request.form.get('session')
+				  }
+
+	#run & return
+	result		= thread.thread({}).thread_add(params)
+	return json.dumps(result)
+#end
+
+@app.route("/threads/<id_thread>", methods=["GET", "PUT", "DELETE"])
+def thread_all(id_thread):
+	#short by method
+	if request.method == 'GET':
+		#prepare data
+		params		= {
+						"method"		: "get",
+						"id_thread"		: id_thread
+					  }
+
+		result		= thread.thread({}).thread_view(params)
+	elif request.method == 'PUT':
+		#prepare data
+		params		= {
+						"method"		: "put",
+						"id_thread"		: id_thread,
+						"title"			: request.form.get('title'),
+						"content"		: request.form.get('content'),
+						"session"		: request.form.get('session')
+					  }
+		
+		result		= thread.thread({}).thread_edit(params)
+	elif request.method == 'DELETE':
+		#prepare data
+		params		= {
+						"method"		: "delete",
+						"id_thread"		: id_thread,
+						"session"		: request.form.get('session')
+					  }
+		
+		result		= thread.thread({}).thread_delete(params)
+	#endif
+
+	#return
 	return json.dumps(result)
 #end
