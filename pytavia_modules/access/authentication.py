@@ -30,90 +30,137 @@ class authentication:
 	#Public Function
 	#==================================================
 	def register(self, params):
-		#additional params
-		params['salt']	= self._generate_salt()
+		#validation
+		required_param	= ['name', 'username', 'password']
+		validation		= self._validation_params(required_param, params)
+		if (validation is not None):
+			return {'status' : False, 'message' : validation['message']}
+		#end
 
-		#checking user
-		info_user		= self._get_user_by_username(params['username'])
+		try:
+			#get info user
+			params['salt']	= self._generate_salt()
+			info_user		= self._get_user_by_username(params['username'])
 
-		if (info_user is not None):
-			return {"status" : 0, "message" : 'username already taken'}
-		#endif
-		
-		#save data user
-		user_add 		= database.new(self.dbsample, "t_user")
-		user_add.put("name", params['name'])
-		user_add.put("username", params['username'])
-		user_add.put("salt", params['salt'])
-		user_add.put("password", self._generate_password(params['salt'], params['password']))
-		user_add.insert()
+			#is valid username?
+			if (info_user is not None):
+				return {'status' : False, 'message' : 'Username already taken'}
+			#endif
+			
+			#save data user
+			user_add 		= database.new(self.dbsample, 't_user')
+			user_add.put('name', params['name'])
+			user_add.put('username', params['username'])
+			user_add.put('salt', params['salt'])
+			user_add.put('password', self._generate_password(params['salt'], params['password']))
+			user_add.insert()
 
-		return {"status" : 1, "message" : 'username successfully inserted'}
+			#return
+			return {'status' : True, 'message' : 'Username successfully inserted'}
+
+		except:
+			return {'status' : False, 'message' : 'Something went wrong, be hold...'}
+		#endtry
 	#end
 
 	def login(self, params):
-		#checking user
-		info_user		= self._get_user_by_username(params['username'])
+		#validation
+		required_param	= ['username', 'password']
+		validation		= self._validation_params(required_param, params)
+		if (validation is not None):
+			return {'status' : False, 'message' : validation['message']}
+		#end
 
-		#is already login?
-		if (info_user is not None and info_user['session'] != ""):
-			return {"status" : 1, "message" : 'the floor is yours', 'session' : info_user['session']}
-		#endif
-		
-		#is valid user?
-		if (info_user is None):
-			return {"status" : 0, "message" : 'you shall not pass'}
-		#endif
+		try:
+			#get info user
+			info_user		= self._get_user_by_username(params['username'])
 
-		#is correct password?
-		if (info_user['password'] != self._generate_password(info_user['salt'], params['password'])):
-			return {"status" : 0, "message" : 'you shall not pass'}
-		#endif
-		
-		#update data user
-		session			= self._generate_session()
-		query			= {"username": params['username']}
-		new_values		= {"$set": { "session": session}}
-		
-		myclient		= pymongo.MongoClient("mongodb://localhost:27017/")
-		mydb			= myclient["dbsample"]
-		mycol			= mydb["t_user"]
-		mycol.update_one(query, new_values)
+			#is already login?
+			if (info_user is not None and info_user['session'] != ''):
+				return {'status' : True, 'message' : 'The floor is yours', 'session' : info_user['session']}
+			#endif
+			
+			#is valid user?
+			if (info_user is None):
+				return {'status' : False, 'message' : 'You shall not pass'}
+			#endif
 
-		return {"status" : 1, "message" : 'the floor is yours', 'session' : session}
+			#is correct password?
+			if (info_user['password'] != self._generate_password(info_user['salt'], params['password'])):
+				return {'status' : False, 'message' : 'You shall not pass'}
+			#endif
+			
+			#update data user
+			session			= self._generate_session()
+			query			= {'username': params['username']}
+			new_values		= {'$set': { 'session': session}}
+			
+			myclient		= pymongo.MongoClient('mongodb://localhost:27017/')
+			mydb			= myclient['dbsample']
+			mycol			= mydb['t_user']
+			mycol.update_one(query, new_values)
+
+			#return
+			return {'status' : True, 'message' : 'The floor is yours', 'session' : session}
+
+		except:
+			return {'status' : False, 'message' : 'Something went wrong, be hold...'}
+		#endtry
 	#end
 
 	def logout(self, params):
-		#checking user
-		info_user		= self._get_user_by_session(params['session'])
+		#validation
+		required_param	= ['session']
+		validation		= self._validation_params(required_param, params)
+		if (validation is not None):
+			return {'status' : False, 'message' : validation['message']}
+		#end
 
-		#is valid user signin?
-		if (info_user is not None):
-			#update data user
-			query			= {"session": info_user['session']}
-			new_values		= {"$set": { "session": ""}}
+		try:
+			#get info user
+			info_user		= self._get_user_by_session(params['session'])
 
-			myclient		= pymongo.MongoClient("mongodb://localhost:27017/")
-			mydb			= myclient["dbsample"]
-			mycol			= mydb["t_user"]
-			mycol.update_one(query, new_values)
-		#endif
-		
-		return {"status" : 1, "message" : 'see you next time'}
+			#is valid user signin?
+			if (info_user is not None):
+				#update data user
+				query			= {'session': info_user['session']}
+				new_values		= {'$set': { 'session': ''}}
+
+				myclient		= pymongo.MongoClient('mongodb://localhost:27017/')
+				mydb			= myclient['dbsample']
+				mycol			= mydb['t_user']
+				mycol.update_one(query, new_values)
+			#endif
+			
+			#return
+			return {'status' : True, 'message' : 'See you next time'}
+
+		except:
+			return {'status' : False, 'message' : 'Something went wrong, be hold...'}
+		#endtry
 	#end
 
 	
 	#==================================================
 	#Private Function
 	#==================================================
+	def _validation_params(self, required_param, params):
+		#checking required_param
+		for field in required_param:
+			if (len(params[field]) == 0):
+				return {'status' : False, 'message' : 'Field [' + field + '] is required'}
+			#endif
+		#endfor
+	#end
+
 	def _get_user_by_username(self, username):
-		info_user		= self.dbsample.t_user.find_one({"username": username})
+		info_user		= self.dbsample.t_user.find_one({'username': username})
 		info_user		= json.loads(json_util.dumps(info_user))
 		return info_user
 	#end
 
 	def _get_user_by_session(self, session):
-		info_user		= self.dbsample.t_user.find_one({"session": session})
+		info_user		= self.dbsample.t_user.find_one({'session': session})
 		info_user		= json.loads(json_util.dumps(info_user))
 		return info_user
 	#end
